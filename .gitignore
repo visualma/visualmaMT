@@ -44,6 +44,11 @@ xcuserdata
 *.opensdf
 *.suo
 ipch/
+*.vcxproj
+*.filters
+*.user
+*.make
+*.sln
 
 #Eclipse
 .metadata
