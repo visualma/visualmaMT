@@ -37,7 +37,7 @@ class testApp : public ofBaseApp{
         ofxUICanvas *guiRt;
         ofxUICanvas *atajos;
         ofxUIMovingGraph *mg; 
-        float *buffer; 
+        float *buffer, initialRtGuiPosX; 
         ofImage *imagen; 
     
     
@@ -51,7 +51,8 @@ class testApp : public ofBaseApp{
         ofxCvGrayscaleImage imgOutput;
         ofVideoGrabber vidGrabber;
         ofImage Imagen;
-        float g_iAnchoLineas,g_iNLineas, width, height,g_iGris,g_iThreshold,max_imageW;
-        int    numLineas, tipoFiltro,g_iFotos;
+        float g_iAnchoLineas,g_iNLineas, width, height,g_iGris,g_iThreshold,max_imageW,
+              g_HoughlineLength, g_HoughPixelGap, g_HoughThreshold;
+        int    numLineas, tipoFiltro,g_iFotos,margin;
         string modoOperacion;
 };

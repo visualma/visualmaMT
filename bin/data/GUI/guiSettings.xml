@@ -1,7 +1,7 @@
 <Widget>
     <Kind>2</Kind>
     <Name>HoughLines</Name>
-    <Value>1</Value>
+    <Value>0</Value>
 </Widget>
 <Widget>
     <Kind>2</Kind>
@@ -16,23 +16,38 @@
 <Widget>
     <Kind>4</Kind>
     <Name>numLineas</Name>
-    <Value>20</Value>
+    <Value>20.000000</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>anchoLineas</Name>
-    <Value>0</Value>
+    <Value>0.016051</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>LineLength</Name>
+    <Value>6.887866</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>Threshold</Name>
+    <Value>27.701254</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>PixelGap</Name>
+    <Value>2.000000</Value>
 </Widget>
 <Widget>
     <Kind>11</Kind>
     <Name>PAD</Name>
-    <XValue>119.5</XValue>
-    <YValue>60</YValue>
+    <XValue>5.000000</XValue>
+    <YValue>30.000000</YValue>
 </Widget>
 <Widget>
     <Kind>21</Kind>
     <Name>Angulo</Name>
-    <Value>50</Value>
+    <Value>50.000000</Value>
 </Widget>
 <Widget>
     <Kind>17</Kind>

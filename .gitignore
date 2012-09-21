@@ -7,7 +7,10 @@ openFrameworksUniversal.a
 
 # Some general ignore patterns
 
-bin/
+#si permitir data pero no bin
+/bin/*
+!/bin/data/
+/bin/data/*.DS_Store
 build/
 obj/
 *.o

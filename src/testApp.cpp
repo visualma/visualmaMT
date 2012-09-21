@@ -12,9 +12,13 @@ void testApp::setup(){
     tipoFiltro = 1;
     modoOperacion = 1;
 	g_iAnchoLineas = height/g_iNLineas;
-    max_imageW = 400;
+    g_HoughlineLength = 0.5;
+    g_HoughThreshold = 5;
+    g_HoughPixelGap = 2;
     width = ofGetViewportWidth();
 	height = ofGetViewportHeight();
+    margin = 256;
+    max_imageW = ofGetViewportWidth()-500;
     
     modoOperacion = "Image";
     initImagen();
@@ -80,18 +84,18 @@ void testApp::procesaImagen() {
 	imgOutput.resize(max_imageW, newHeight);
     Imagen.resize(max_imageW, newHeight);
     ofSetHexColor(0xffffff);
-	Imagen.draw(256,0);
-	//imgOutput.draw(imgOutput.width+256,0);
-    int* a = procesaHoughesP(img[0],256,0);
+	Imagen.draw(margin,0);
+	//imgOutput.draw(imgOutput.width+margin,0);
+    int* a = procesaHoughesP(img[0],margin,Imagen.height);
 }
 
 void testApp::procesaVideo() {
 
 	img[0].setFromPixels(vidGrabber.getPixels(),vidGrabber.width,vidGrabber.height);
-	//draw(img[0].width+256,0);
+	//draw(img[0].width+margin,0);
 	ofSetColor(255);
-	vidGrabber.draw(256,0);
-	int* lineas = procesaHoughesP(img[0],256,0);
+	vidGrabber.draw(margin,0);
+	int* lineas = procesaHoughesP(img[0],margin,vidGrabber.height);
      for(int i=0;i<g_iFotos;i++)
          img[i].draw(i*CAM_WIDTH,CAM_HEIGHT);
      for(int i=0;i<g_iNLineas;i++) {
@@ -116,21 +120,33 @@ int* testApp::procesaHoughesP(ofxCvColorImage img,int posX,int posY)
 	cvCanny(imgOut.getCvImage(),imgCanny,0,50,5);
 	int maxLinesNumber = 1000;
 	int *lines = new int[maxLinesNumber*4];
-	int threshold = 5;
-	int lineLenght = 10;
-	int pixelGap = 2;
+	int threshold = g_HoughThreshold >= 1 ? g_HoughThreshold : 1;
+	int lineLenght = g_HoughlineLength;
+	int pixelGap = g_HoughPixelGap;
 	int linesNumber = cvHoughLinesP(imgCanny, 1, 0.01745, threshold,lineLenght , pixelGap, lines, maxLinesNumber);
 	ofPoint P1, P2;
 	P1.y = 0;
-	posX+=imgOut.width;
+	//posY+=imgOut.height;
 	imgOut.draw(posX,posY);
 	ofSetColor(255,0,0);
+    ofSetLineWidth(3);
+    
+    //dibujar en original
+    for(int l=0;l<linesNumber;l++) 
+	{
+		P1.x = (int)lines[ 4*l]+posX;
+		P1.y = (int)lines[ 4*l+1];
+		P2.x = (int)lines[ 4*l+2]+posX;
+		P2.y = (int)lines[ 4*l+3];
+		ofLine(P1,P2);
+	}
+    //dibujar en imgOutput
 	for(int l=0;l<linesNumber;l++) 
 	{
 		P1.x = (int)lines[ 4*l]+posX;
-		P1.y = (int)lines[ 4*l+1];//+posY;
+		P1.y = (int)lines[ 4*l+1]+posY;
 		P2.x = (int)lines[ 4*l+2]+posX;
-		P2.y = (int)lines[ 4*l+3];//+posY;
+		P2.y = (int)lines[ 4*l+3]+posY;
 		ofLine(P1,P2);
 	}
 	return lines;
@@ -157,13 +173,18 @@ void testApp::generaGui(){
 	gui->addRadio("Filtro", names, OFX_UI_ORIENTATION_VERTICAL, dim, dim, 0, 32); 	
     gui->addSpacer(length-xInit, 2);
     
-    gui->addWidgetDown(new ofxUILabel("# Lineas", OFX_UI_FONT_SMALL)); 
+    gui->addWidgetDown(new ofxUILabel("Lineas proyectadas", OFX_UI_FONT_SMALL)); 
 	gui->addSlider("numLineas", 0, 1000, &g_iNLineas, length-xInit,dim);
     gui->addSlider("anchoLineas", 0, 200, &g_iAnchoLineas, length-xInit,dim, OFX_UI_FONT_SMALL);
-    
+
+    gui->addSpacer(length-xInit, 2);	
+    gui->addWidgetDown(new ofxUILabel("Hough", OFX_UI_FONT_SMALL));
+    gui->addSlider("LineLength", 0.2, 200, &g_HoughlineLength, length-xInit,dim, OFX_UI_FONT_SMALL);
+    gui->addSlider("Threshold", 0.1, 200, &g_HoughThreshold, length-xInit,dim, OFX_UI_FONT_SMALL);
+    gui->addSlider("PixelGap", 0.1, 200, &g_HoughPixelGap, length-xInit,dim, OFX_UI_FONT_SMALL);
     
     gui->addSpacer(length-xInit, 2);
-	gui->add2DPad("PAD", ofPoint(0,length-xInit), ofPoint(0,120), ofPoint((length-xInit)*.5,120*.5), length-xInit,120);
+	gui->add2DPad("PAD", ofPoint(0,length-xInit), ofPoint(0,120), ofPoint(g_HoughThreshold,g_iThreshold), length-xInit,120);
     
     gui->addSpacer(length-xInit, 2);			
     gui->addWidgetDown(new ofxUIRotarySlider(dim*4, 0, 100, 50, "Angulo")); 			
@@ -183,8 +204,8 @@ void testApp::generaGuiRt(){
     float dim = 16; 
 	float xInit = OFX_UI_GLOBAL_WIDGET_SPACING; 
     float length = 255-xInit; 
-    
-    guiRt = new ofxUIScrollableCanvas(ofGetWidth()-length+xInit, 0, length+xInit, ofGetHeight());     
+    initialRtGuiPosX = ofGetWidth()-length+xInit;
+    guiRt = new ofxUIScrollableCanvas(initialRtGuiPosX, 0, length+xInit, ofGetHeight());     
     guiRt->loadSettings("GUI/guiSettings.xml"); 
     
     guiRt->addWidgetDown(new ofxUILabel("Herramientas", OFX_UI_FONT_SMALL)); 	
@@ -200,9 +221,9 @@ void testApp::generaGuiRt(){
     
     guiRt->addFPSSlider("FPS", length-xInit, dim);
     vector<float> buffer; 
-    for(int i = 0; i < 256; i++)
+    for(int i = 0; i < margin; i++)
         buffer.push_back(0.0);				    
-    mg = (ofxUIMovingGraph *) guiRt->addWidgetDown(new ofxUIMovingGraph(length-xInit, 120, buffer, 256, 0, 400, "MOVING GRAPH"));
+    mg = (ofxUIMovingGraph *) guiRt->addWidgetDown(new ofxUIMovingGraph(length-xInit, 120, buffer, margin, 0, 400, "MOVING GRAPH"));
 	guiRt->addSpacer(length-xInit, 0);	
     
     
@@ -225,16 +246,22 @@ void testApp::generaAtajos(){
     atajos->addWidgetDown(new ofxUILabel("Atajos", OFX_UI_FONT_MEDIUM)); 	
     atajos->addWidgetDown(new ofxUILabel("[f] FullScreen", OFX_UI_FONT_SMALL)); 	
     atajos->addWidgetDown(new ofxUILabel("[h] Show/hide Tools", OFX_UI_FONT_SMALL));
-    atajos->addWidgetDown(new ofxUILabel("[f] FullScreen", OFX_UI_FONT_SMALL)); 	
+    //atajos->addWidgetDown(new ofxUILabel("[f] ", OFX_UI_FONT_SMALL)); 	
     atajos->toggleVisible(); 
 }
 
 void testApp::posicionaGui() {
     float xInit = OFX_UI_GLOBAL_WIDGET_SPACING; 
-    float length = 255-xInit; 
+    float length = 255-xInit;
+    float offsetRtGui;
     gui->setRectParent(new ofxUIRectangle(0, 0, length+xInit, ofGetHeight()));
-    guiRt->setRectParent(new ofxUIRectangle(300, 0, length+xInit, ofGetHeight()));
-    atajos->setRectParent(new ofxUIRectangle(ofGetWidth()-(length)+(xInit), ofGetHeight()-300, length+xInit, 300));
+    
+    offsetRtGui = initialRtGuiPosX-ofGetWidth();
+    guiRt->setRectParent(new ofxUIRectangle(-offsetRtGui-length, 0, (length+xInit), ofGetHeight()));
+    atajos->setRectParent(new ofxUIRectangle(-offsetRtGui-length, 0, (length+xInit), 300));
+    
+    //max_imageW = ofGetViewportWidth()-500;
+    //cout << "posicionaGui - windowWidth:" << ofGetWidth() << "offset" << offsetRtGui << endl;
 }
 
 //------------------------------------------------------  UTIL
